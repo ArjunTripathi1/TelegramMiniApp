@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telegram Video Player</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://unpkg.com/video.js@7/dist/video-js.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@videojs/themes@1/dist/forest/index.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        #playerContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #videoPlayer {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            background-color: #000;
+        }
+
+        .loading {
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error {
+            color: #ff4444;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .video-js {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+        }
+        
+        .video-js.vjs-theme-forest {
+            --vjs-theme-forest--primary: #3498db;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .details {
+            margin-top: 20px;
+        }
+
+        .details a {
+            display: block;
+            margin-top: 10px;
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .details a:hover {
+            text-decoration: underline;
+        }
+
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+        }
+
+        .loader-text {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="playerContainer">
+        <!-- Iframe will be added here -->
+    </div>
+    <!-- Debug info div - uncomment for debugging -->
+    <!-- <div id="debugInfo" style="color: white; padding: 10px; position: absolute; top: 0; left: 0; z-index: 1000;"></div> -->
+
+    <script>
+        // Initialize Telegram WebApp
+        const webapp = window.Telegram.WebApp;
+        webapp.ready();
+        webapp.expand();
+
+        // Modified debug logging function that works even when debugInfo div is not present
+        function debugLog(...args) {
+            console.log(...args);
+            const debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.innerHTML += `<div>${args.join(' ')}</div>`;
+                // Force browser to render the update
+                return new Promise(resolve => setTimeout(resolve, 100));
+            }
+            return Promise.resolve(); // Return resolved promise if no debug div
+        }
+
+        // Get video URL from query parameters
+        async function initializePlayer() {
+            await debugLog('Full URL', window.location.href);
+
+            // Get tgWebAppStartParam instead of 'link'
+            const startParam = webapp.initDataUnsafe.start_param;
+            await debugLog('Start Param:', startParam);
+
+            function showError(message) {
+                document.getElementById('playerContainer').innerHTML = 
+                    `<div class="error">${message}</div>`;
+            }
+
+            if (startParam) {
+                try {
+                    const baseUrl = 'https://www.1024terabox.com/sharing/embed?surl=';
+                    const finalVideoUrl = baseUrl + startParam;
+                    await debugLog('Final URL:', finalVideoUrl);
+                    
+                    // Create iframe element
+                    const iframe = document.createElement('iframe');
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.src = finalVideoUrl;
+                    
+                    document.getElementById('playerContainer').innerHTML = '';
+                    document.getElementById('playerContainer').appendChild(iframe);
+
+                } catch (error) {
+                    await debugLog('Error:', error.message);
+                    showError('Failed to load content.');
+                    console.error('Iframe loading error:', error);
+                }
+            } else {
+                await debugLog('No start_param provided');
+                showError('No URL provided');
+            }
+        }
+
+        // Start the initialization
+        initializePlayer().catch(error => {
+            showError('An error occurred while initializing the player');
+            console.error(error);
+        });
+    </script>
+</body>
+</html>
