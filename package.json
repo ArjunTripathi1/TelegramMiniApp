@@ -1,0 +1,17 @@
+{
+  "name": "telegram-video-player",
+  "version": "1.0.0",
+  "description": "Telegram Mini App Video Player",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@vercel/node": "^2.15.1"
+  }
+}
